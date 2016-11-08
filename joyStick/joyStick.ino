@@ -1,7 +1,12 @@
 /*
-  Binary Counter  - 4 LEDs count 0 to 15
+  Kitchen sink app that makes noise, blinks LEDs in binary counter fashion,
+  Reads a potentiometer to set speed of blinking
+  Reads a joystick to set speed of a simple motor.
 
-  Wire digital out 8,9,10,11 to leds (with 300ohm resistors)
+  Basically this is all the SparkFun Starter Kit tutorials rolled into one.
+  https://www.vilros.com/uskcode
+  
+  Wire digital out 8,9,10,11 to LEDs (with 300ohm resistors)
   2016, David Whitney
 */
 
@@ -147,11 +152,10 @@ void handleJoystick() {
  */
 void loop() {
 
-  handleJoystick();
+  handleJoystick();  // just prints joystick state
   //return;
 
   playNote('c', 80 );
-  //playNote('g', 80 );
   
   Serial.println("Waiting for button to be pressed...");
   while (!buttonPressed( button1Pin )) {  }  // don't proceed until button
@@ -173,6 +177,7 @@ void loop() {
 
   display( 0 );  // 0 turns off all LEDs
   setMotorSpeed( 0 );
+
 
   //exit(0);
 }
