@@ -70,7 +70,7 @@ void setup() {
 
 
 //----------------------------------------
-// tell motors what to do.  Our physical world is probably about 2000x2000
+// tell motors what to do.  Our physical world is probably about 2000x2000 (150/inch)
 // This doesn't draw a straight line, it just gets there are fast as possible.
 //----------------------------------------
 
