@@ -155,10 +155,12 @@ void loop() {
   handleJoystick();  // just prints joystick state
   //return;
 
-  playNote('c', 80 );
+  playNote('c', 80 );  // boot up chime
   
   Serial.println("Waiting for button to be pressed...");
-  while (!buttonPressed( button1Pin )) {  }  // don't proceed until button
+  while (!buttonPressed( button1Pin )) {  
+    // spin wait until button
+  }
 
   playNote('g', 150 );
 
