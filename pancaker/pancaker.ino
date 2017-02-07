@@ -51,25 +51,6 @@ void loop() {
     int stepStyle = DOUBLE;    // DOUBLE seems to be best combination of torque and speed.
     bool motorRunning = false;
 
-/*
-    int fast = 400;  // steps/revolution of motor
-    int slow = 50;
-
-    int xSpeed = slow;
-    int ySpeed = slow;
-
-    // make motor move faster if joystick is pushed hard over
-    if ((x > 1000) || (x < 10)) {
-        xSpeed = fast;
-    }
-    if ((y > 1000) || (y < 10)) {
-        ySpeed = fast;
-    }
-
-    motorX->setSpeed( xSpeed );   // setSpeed is ignored is onestep() is used.
-    motorY->setSpeed( ySpeed );
-*/
-
     if (x > 750) {
         motorX->onestep( FORWARD, stepStyle );
         motorRunning = true;
