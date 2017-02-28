@@ -8,6 +8,7 @@
  * Driver for the Adafruit Motor Shield v2  http://www.adafruit.com/products/1438
  * API for Motor: https://learn.adafruit.com/adafruit-motor-shield-v2-for-arduino/library-reference#class-adafruit-steppermotor
  * API for AccelStepper: http://www.airspayce.com/mikem/arduino/AccelStepper/classAccelStepper.html
+ * See also: https://github.com/adafruit/AccelStepper/blob/master/AccelStepper.h
  */
 
 #include <AccelStepper.h>
@@ -71,14 +72,20 @@ void setup() {
 //----------------------------------------
 // tell motors what to do to draw the given list of points.
 // This function takes over the Arduino until all points are reached by the motors.
+// Assumes our initial position is (0,0)
 //----------------------------------------
 void drawShape( long points[][2], int numPoints ) {
-  long* point = NULL;
-  long* lastPoint = points[0];  // this is a pointer to where we were last so
-                                // we can calculate distances to the next point
-  float xDistance, yDistance, xSpeed, ySpeed;
 
-  for (int i = 1; i < numPoints; i++) {
+  // TODO: should have raisePen() or closeBatter() function to call first
+
+  long* point;               // pointer into the array of points
+  long origin[2] = { 0, 0 };
+  long* lastPoint = origin;  // this is a pointer to where we were last so
+                             // we can calculate distances to the next point
+  float xDistance, yDistance;
+
+  // draw a line between all points
+  for (int i = 0; i < numPoints; i++) {
     point = points[i];
 
     Serial.print("Moving from (");
@@ -87,47 +94,49 @@ void drawShape( long points[][2], int numPoints ) {
     Serial.print( point[0] ); Serial.print(","); Serial.print( point[1] );
     Serial.println( ")" );
 
-    // slow down or speed up one motor so line is straight and not a banana
-
-    xDistance = point[0] - lastPoint[0];
-    yDistance = point[1] - lastPoint[1];
-
+    // moveTo calculates the fastest speed, we want even speed so we have more work to do
     motorX.moveTo( point[0] );
     motorY.moveTo( point[1] );
 
-    // max even speed is pretty much 60, otherwise motors get out of sync
+    // slow down or speed up one motor so line is straight and not a banana
+    xDistance = point[0] - lastPoint[0];
+    yDistance = point[1] - lastPoint[1];
+
+    // max reliable speed seems to be 60, otherwise motors get out of sync
     float limiter = abs( 60.0 / max( xDistance, yDistance ));
 
-    // moveTo calculates the fastest speed, we want even 2D speed.
     motorX.setSpeed( xDistance * limiter );
     motorY.setSpeed( yDistance * limiter );
 
     Serial.print("Speed = "); Serial.print( motorX.speed() ); Serial.print(" x ");
     Serial.println( motorY.speed() );
 
+    // run the motors until we've reached the next point
     // motor.run() will move the motors the right amount and return false when they are done
-    // runSpeed() is constant speed, run() does acceleration/deceleration
+    // motor.runSpeedToPosition() is constant speed so easier to draw straight lines
 
-    long xD, yD;
+    long deltaX, deltaY;  // distance left to travel
 
     do {
-      xD = motorX.distanceToGo();
-      yD = motorY.distanceToGo();
+      deltaX = abs( motorX.distanceToGo() );
+      deltaY = abs( motorY.distanceToGo() );
 
-      // Serial.print("To go = "); Serial.print( xD ); Serial.print(" "); Serial.println( yD );
-
-      if (abs( xD ) > 0)
+      if (deltaX > 0)
         motorX.runSpeedToPosition();
 
-      if (abs( yD ) > 0)
+      if (deltaY > 0)
         motorY.runSpeedToPosition();
 
+      // Serial.print("Delta to go = ");
+      // Serial.print( deltaX ); Serial.print(" "); Serial.println( deltaY );
 
-      // loop until both motors are done running
-    } while ((abs(xD) > 1) || (abs(yD) > 1));
+    } while ((deltaX > 1) || (deltaY > 1));
 
-    lastPoint = point;    // remember where we started to calculate future speeds.
+    // TODO: if this is the first point, then lowerPen(), or openBatter()
+
+    lastPoint = point;    // remember where we started, to calculate future speed.
   }
+
   Serial.println("Done!");
 }
 
