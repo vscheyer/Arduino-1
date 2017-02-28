@@ -51,7 +51,7 @@ void backwardY() {
 // wrap the motors and movement functions in a magic object that
 // calculates motor movements and speeds for us.
 
-AccelStepper motorX( backwardX, forwardX );   // reverse so X is left to right
+AccelStepper motorX( backwardX, forwardX );   // reverse so X is left to right on our robot
 AccelStepper motorY( forwardY, backwardY );
 
 
@@ -82,13 +82,9 @@ void drawShape( long points[][2], int numPoints ) {
     point = points[i];
 
     Serial.print("Moving from (");
-    Serial.print( lastPoint[0] );
-    Serial.print(",");
-    Serial.print( lastPoint[1] );
+    Serial.print( lastPoint[0] ); Serial.print(","); Serial.print( lastPoint[1] );
     Serial.print(") to (");
-    Serial.print( point[0] );
-    Serial.print(",");
-    Serial.print( point[1] );
+    Serial.print( point[0] ); Serial.print(","); Serial.print( point[1] );
     Serial.println( ")" );
 
     // slow down or speed up one motor so line is straight and not a banana
@@ -106,9 +102,7 @@ void drawShape( long points[][2], int numPoints ) {
     motorX.setSpeed( xDistance * limiter );
     motorY.setSpeed( yDistance * limiter );
 
-    Serial.print("Speed = ");
-    Serial.print( motorX.speed() );
-    Serial.print(" x ");
+    Serial.print("Speed = "); Serial.print( motorX.speed() ); Serial.print(" x ");
     Serial.println( motorY.speed() );
 
     // motor.run() will move the motors the right amount and return false when they are done
@@ -137,6 +131,9 @@ void drawShape( long points[][2], int numPoints ) {
   Serial.println("Done!");
 }
 
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
+//----------------------------------------------------------------------
 
 // Our physical world is probably about 2000x2000.
 
@@ -166,22 +163,8 @@ long triangle[triPoints][2] = {
 
 //----------------------------------------
 void loop() {
-  // drawShape( star, numPoints );
-   drawShape( triangle, triPoints );
-
-  // motorX.moveTo( 400 );
-  // motorY.moveTo( 100 );
-  // motorX.setSpeed( 40 );
-  // motorY.setSpeed( 10 );
-
-  // bool motorXRunning = motorX.runSpeedToPosition();
-  // bool motorYRunning = motorY.runSpeedToPosition();
-
-  // if (motorYRunning | motorXRunning ) {
-  //   //
-  // } else {
-  //   exit(0);
-  // }
+  drawShape( star, numPoints );
+  // drawShape( triangle, triPoints );
 
   // We're done! Let motor spin freely (don't lock gear in place)
   // keeps motor cooler when idle, too
