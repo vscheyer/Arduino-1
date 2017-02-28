@@ -51,7 +51,7 @@ void backwardY() {
 // wrap the motors and movement functions in a magic object that
 // calculates motor movements and speeds for us.
 
-AccelStepper motorX( forwardX, backwardX );
+AccelStepper motorX( backwardX, forwardX );   // reverse so X is left to right
 AccelStepper motorY( forwardY, backwardY );
 
 
@@ -59,82 +59,136 @@ AccelStepper motorY( forwardY, backwardY );
 // Enable USB port and motors
 //----------------------------------------
 void setup() {
-  Serial.begin(9600);           // set up Serial library at 9600 bps
+  Serial.begin( 9600 );           // set up Serial library at 9600 bps
   Serial.println("Let's make pancakes!");
 
   // create motor library with the default frequency of 1600Hz for PWM,
   // I don't know what effect this has on the motor.
   AFMS.begin();
-
-  motorX.setSpeed( 100 );        // steps per second
-  motorY.setSpeed( 100 );
-
-  // motorX.setMaxSpeed( 400 );        // steps per second
-  // motorY.setMaxSpeed( 400 );
-  // motorX.setAcceleration( 100 );    // steps per second per second
-  // motorY.setAcceleration( 100 );
 }
 
 
 //----------------------------------------
-// tell motors what to do.  Our physical world is probably about 2000x2000
-// This doesn't draw a straight line, it just gets there are fast as possible.
+// tell motors what to do to draw the given list of points.
+// This function takes over the Arduino until all points are reached by the motors.
 //----------------------------------------
+void drawShape( long points[][2], int numPoints ) {
+  long* point = NULL;
+  long* lastPoint = points[0];  // this is a pointer to where we were last so
+                                // we can calculate distances to the next point
+  float xDistance, yDistance, xSpeed, ySpeed;
 
-// Global variables - these are remembered throughout the program (as
-// opposed to the local function variables).
+  for (int i = 1; i < numPoints; i++) {
+    point = points[i];
+
+    Serial.print("Moving from (");
+    Serial.print( lastPoint[0] );
+    Serial.print(",");
+    Serial.print( lastPoint[1] );
+    Serial.print(") to (");
+    Serial.print( point[0] );
+    Serial.print(",");
+    Serial.print( point[1] );
+    Serial.println( ")" );
+
+    // slow down or speed up one motor so line is straight and not a banana
+
+    xDistance = point[0] - lastPoint[0];
+    yDistance = point[1] - lastPoint[1];
+
+    motorX.moveTo( point[0] );
+    motorY.moveTo( point[1] );
+
+    // max even speed is pretty much 60, otherwise motors get out of sync
+    float limiter = abs( 60.0 / max( xDistance, yDistance ));
+
+    // moveTo calculates the fastest speed, we want even 2D speed.
+    motorX.setSpeed( xDistance * limiter );
+    motorY.setSpeed( yDistance * limiter );
+
+    Serial.print("Speed = ");
+    Serial.print( motorX.speed() );
+    Serial.print(" x ");
+    Serial.println( motorY.speed() );
+
+    // motor.run() will move the motors the right amount and return false when they are done
+    // runSpeed() is constant speed, run() does acceleration/deceleration
+
+    long xD, yD;
+
+    do {
+      xD = motorX.distanceToGo();
+      yD = motorY.distanceToGo();
+
+      // Serial.print("To go = "); Serial.print( xD ); Serial.print(" "); Serial.println( yD );
+
+      if (abs( xD ) > 0)
+        motorX.runSpeedToPosition();
+
+      if (abs( yD ) > 0)
+        motorY.runSpeedToPosition();
+
+
+      // loop until both motors are done running
+    } while ((abs(xD) > 1) || (abs(yD) > 1));
+
+    lastPoint = point;    // remember where we started to calculate future speeds.
+  }
+  Serial.println("Done!");
+}
+
+
+// Our physical world is probably about 2000x2000.
+
+// Unlike most languages, C can't tell easily how long an array is,
+// we must declare exactly how large the array is so the right amount of memory can be allocated
+const int numPoints = 6;
 
 // list of points for motors to visit
-
-const int numPoints = 6;  // Unlike most languages, C can't tell easily how long an array is
-
-int point[numPoints][2] = {
-  {0, 0},
+long star[numPoints][2] = {
+  {0, 0},                       // must start at 0,0
   {124, 380},
   {248, 0},
   {76, 236},
   {324, 236},
   {0, 0}
 };
-int i = 0;              // which point we are on
 
-int* lastPoint = NULL;  // this is a pointer to where we were last so
-                        // we can calculate distances to the next point
+
+// triangle
+const int triPoints = 4;
+long triangle[triPoints][2] = {
+  {0, 0},
+  {700, 200},
+  {200, 700},
+  {0, 0}
+};
 
 //----------------------------------------
 void loop() {
-  int* nextPoint = NULL;
-  int xDistance, yDistance;
+  // drawShape( star, numPoints );
+   drawShape( triangle, triPoints );
 
-  // motor.run() will move the motors the right amount and return false when they are done
-  while (motorX.run() && motorY.run()) {
-    // wait until motors are done
-  }
+  // motorX.moveTo( 400 );
+  // motorY.moveTo( 100 );
+  // motorX.setSpeed( 40 );
+  // motorY.setSpeed( 10 );
 
-  // We've reached our target, move to the next one.
-  if (++i < numPoints) {
-    nextPoint = point[i];
+  // bool motorXRunning = motorX.runSpeedToPosition();
+  // bool motorYRunning = motorY.runSpeedToPosition();
 
-    if (lastPoint != NULL) {
-      // slow down or speed up one motor so line is straight and not a banana
+  // if (motorYRunning | motorXRunning ) {
+  //   //
+  // } else {
+  //   exit(0);
+  // }
 
-      xDistance = abs( nextPoint[0] - lastPoint[0]);
-      yDistance = abs( nextPoint[1] - lastPoint[1] );
+  // We're done! Let motor spin freely (don't lock gear in place)
+  // keeps motor cooler when idle, too
+  stepperX->release();
+  stepperY->release();
 
-      motorX.setSpeed( 100 );        // steps per second
-      motorY.setSpeed( 100 * xDistance/yDistance );
-    }
+  exit(0);  // don't keep looping, we could go into joystick mode here...  TODO
 
-    motorX.moveTo( nextPoint[0] );
-    motorY.moveTo( nextPoint[1] );
-
-    lastPoint = nextPoint;    // remember where we started to calculate future speeds.
-
-  } else {
-    // We're done! Let motor spin freely (don't lock gear in place)
-    // keeps motor cooler when idle, too
-
-    stepperX->release();
-    stepperY->release();
-  }
+  // handleJoystick();
 }
