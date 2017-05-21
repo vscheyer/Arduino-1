@@ -89,6 +89,15 @@ void stopBatter() {
 }
 
 
+// @return true if joystick button is pressed
+bool buttonPressed() {
+
+  // FIXME - add code here
+  
+  return false;
+}
+
+
 //----------------------------------------
 // Read the joystick and move the motors
 // if button ispressed, open the batter valve
@@ -134,9 +143,11 @@ void handleJoystick() {
         stepperY->release();   // keeps motor cooler when idle, too
     }
 
-    // FIXME, this should be a button press
-    if (x < 250) pourBatter();
-    if (x > 750) stopBatter();
+    if (buttonPressed()) {
+      pourBatter();
+    } else {
+      stopBatter();
+    }
 }
 
 
