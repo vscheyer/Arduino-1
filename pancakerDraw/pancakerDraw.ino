@@ -120,6 +120,8 @@ void handleJoystick() {
 
     int stepStyle = DOUBLE;    // DOUBLE seems to be best combination of torque and speed.
 
+    motorRunning = false;
+
     if (x > 750) {
         stepperX->onestep( FORWARD, stepStyle );
         motorRunning = true;
