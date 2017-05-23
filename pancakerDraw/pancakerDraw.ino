@@ -67,6 +67,8 @@ AccelStepper motorY( forwardY, backwardY );
 void setup() {
   Serial.begin( 9600 );           // set up Serial library at 9600 bps
   Serial.println("Let's make pancakes!");
+  
+  pinMode(inPin, INPUT); 
 
   // create motor library with the default frequency of 1600Hz for PWM,
   // I don't know what effect this has on the motor.
@@ -91,9 +93,7 @@ void stopBatter() {
 
 // @return true if joystick button is pressed
 bool buttonPressed() {
-
-  // FIXME - add code here
-  
+  val = digitalRead(inPin);   
   return false;
 }
 
