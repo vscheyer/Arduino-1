@@ -71,6 +71,10 @@ void setup() {
   // create motor library with the default frequency of 1600Hz for PWM,
   // I don't know what effect this has on the motor.
   AFMS.begin();
+  
+  pinMode(servoPin, INPUT); 
+  digitalWrite(servoPin, HIGH); //pull-up - don't delete this (flaky button)
+  myservo.write(batterClose); 
 
   servo.attach( servoPin );
   stopBatter();
@@ -92,9 +96,9 @@ void stopBatter() {
 // @return true if joystick button is pressed
 bool buttonPressed() {
 
-  // FIXME - add code here
+  int val = digitalRead(inPin); 
   
-  return false;
+  return val;
 }
 
 
